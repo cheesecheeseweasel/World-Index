@@ -1,0 +1,767 @@
+import java.util.Scanner;
+import java.util.*;
+import java.util.ArrayList;
+
+public class booleanAlgebraSolver {
+
+	public static void main(String[] args) {
+		Scanner input = new Scanner(System.in);
+
+		System.out.println("Hello, this is the automatic boolean algebra simplifier");
+		System.out.println("Use the + sign for 'or' and * for 'and'");
+		System.out.println("If you want to put in a negative sign put it before the desired phrase");
+		System.out.println("ex: NOT (A OR B) = !(A + B)");
+		System.out.println("Please be aware there is a maximum of 26 variables from capital A to capital Z");
+		System.out.println();
+		System.out.println("Please put in the expression which you want to simplify/solve:");
+		String inputline = input.nextLine();
+		inputline = inputline.replaceAll("\\s", "");
+		inputline = removeparents(inputline);
+		inputline = stragglingone(inputline);
+		String output3 = inputline;
+		for (int g = 0; g != 1; g++) {
+			output3 = deMorgans(inputline);
+			output3 = removeparents(output3);
+			output3 = stragglingone(output3);
+			if (output3.equals(inputline)) {
+				inputline = output3;
+				output3 = doublenegate(inputline);
+				output3 = removeparents(output3);
+				output3 = stragglingone(output3);
+			if(output3.equals(inputline)) {
+				inputline = output3;
+				output3 = multiplyit(inputline, 0);
+				output3 = removeparents(output3);
+				output3 = stragglingone(output3);
+				if(output3.equals(inputline)) {
+					inputline = output3;
+					output3 = simplifymultiply(inputline, 0);
+					output3 = removeparents(output3);
+					output3 = stragglingone(output3);
+					inputline = output3;
+					output3 = organize(inputline, 0);
+					output3 = removeparents(output3);
+					output3 = stragglingone(output3);
+					if(output3.equals(inputline)) {
+						inputline = output3;
+						output3 = simplifyaddition(inputline);
+						output3 = removeparents(output3);
+						output3 = stragglingone(output3);
+						if(output3.equals(inputline)) {
+							inputline = output3;
+							output3 = absorption(inputline);
+							output3 = removeparents(output3);
+							output3 = stragglingone(output3);
+							if(output3.equals(inputline)) {
+								inputline = output3;
+							} else {
+								inputline = output3;
+								g = -1;
+								continue;
+							}
+						} else {
+							inputline = output3;
+							g = -1;
+							continue;
+						}
+					} else {
+						inputline = output3;
+						g = -1;
+						continue;
+					}
+					
+				} else {
+					inputline = output3;
+					g = -1;
+					continue;
+				}
+			} else {
+				inputline = output3;
+				g = -1;
+				continue;
+			}
+			} else {
+				inputline = output3;
+				g = -1;
+				continue;
+			}
+
+		}
+		//DONT FORGET TO ADD METHOD WHERE !1 = 0 AND !0 = 1
+		System.out.println("Simplified: " + inputline);
+	}
+
+	public static String deMorgans(String theinput) {
+		int sublength = theinput.length();
+		int pinpoint = -1;
+		String replaceall = theinput;
+		for (int i = 0; i < sublength - 1; i++) {
+			String checkit = theinput.substring(i, i + 2);
+			if (checkit.equals("!(")) {
+				pinpoint = i + 1;
+				break;
+			}
+		}
+		if (pinpoint != -1) {
+			int endpoint = parenthesis(theinput, pinpoint);
+			String output1 = theinput.substring(pinpoint, endpoint);
+			String output2 = "(";
+			for (int i = 1; i < output1.length() - 1; i++) {
+				String checker = output1.substring(i, i + 1);
+				if (checker.equals("!")) {
+					output2 = output2 + "";
+				} else if (checker.equals("*")) {
+					output2 = output2 + "+";
+				} else if (checker.equals("0")) {
+					output2 = output2 + "1";
+				} else if (checker.equals("1")) {
+					output2 = output2 + "0";
+				} else if (checker.equals("+")) {
+					output2 = output2 + ")*(";
+				} else if (checker.equals("(")) {
+					int endp = parenthesis(output1, i);
+					String extra = output1.substring(i, endp);
+					if (i > 1 && output1.substring(i - 1, i).equals("!")) {
+						output2 = output2 + extra;
+					} else {
+						output2 = output2 + "!" + extra;
+					}
+					i = endp - 1;
+				} else {
+					if (i > 1 && output1.substring(i - 1, i).equals("!")) {
+						output2 = output2 + checker;
+					} else {
+						output2 = output2 + "!" + checker;
+					}
+				}
+			}
+			output2 = output2 + ")";
+			output2 = "(" + output2 + ")";
+			String replaceit = theinput.substring(pinpoint - 1, endpoint);
+			replaceall = theinput.replace(replaceit, output2);
+		}
+		return replaceall;
+
+	}
+
+	public static int parenthesis(String theinputs, int pinpoints) {
+		int output1 = 0;
+		int stackit = 1;
+		for (int i = pinpoints + 1; i < theinputs.length(); i++) {
+			String doublecheck = theinputs.substring(i, i + 1);
+			if (doublecheck.equals("(")) {
+				stackit++;
+			} else if (doublecheck.equals(")")) {
+				stackit--;
+			}
+			if (stackit == 0) {
+				output1 = i + 1;
+				break;
+			}
+		}
+		return output1;
+	}
+
+	public static int reverseparenthesis(String theinputs, int pinpoints) {
+		int output1 = 0;
+		int stackit = 1;
+		for (int i = theinputs.length() - 1; i > 0; i++) {
+			String doublecheck = theinputs.substring(i - 1, i);
+			if (doublecheck.equals(")")) {
+				stackit++;
+			} else if (doublecheck.equals("(")) {
+				stackit--;
+			}
+			if (stackit == 0) {
+				output1 = i - 1;
+				break;
+			}
+		}
+		return output1;
+	}
+
+	public static String removeparents(String theinputs) {
+		String edit = theinputs;
+		int len = edit.length();
+		int starthere = 0;
+		// MAYBE START LOOP HERE
+		for (starthere = 0; starthere < len; starthere++) {
+			boolean removedone = false;
+			int pinpoint = -1;
+			for (int i = starthere; i < len; i++) {
+				String checkit = edit.substring(i, i + 1);
+				if (checkit.equals("(")) {
+					pinpoint = i;
+					break;
+				}
+			}
+			if (pinpoint == -1) {
+				break;
+			}
+			int endpoint = parenthesis(edit, pinpoint);
+			if (pinpoint == 0 && endpoint == len) {
+				edit = edit.substring(1, len - 1);
+				removedone = true;
+			} else {
+				if (pinpoint != 0 && (edit.substring(pinpoint - 1, pinpoint)).equals("!")) {
+					// IDK WHAT TO ADD HERE
+				} else {
+					String insideparen = edit.substring(pinpoint + 1, pinpoint + 2);
+					boolean aboveworked = false;
+					if (insideparen.equals("(")) {
+						int otherparen = parenthesis(edit, pinpoint + 1);
+						if (endpoint - 2 == otherparen) {
+							edit = actionremove(edit, pinpoint, endpoint);
+							removedone = true;
+							aboveworked = true;
+						}
+					}
+					if (!aboveworked) {
+						boolean multiply = false;
+						boolean addition = false;
+
+						for (int y = pinpoint + 1; y < endpoint - 1; y++) {
+							String checkit = edit.substring(y, y + 1);
+							if (checkit.equals("(")) {
+								int othery = parenthesis(edit, y);
+								y = othery - 1;
+							} else if (checkit.equals("+")) {
+								addition = true;
+							} else if (checkit.equals("*")) {
+								multiply = true;
+							}
+						}
+
+						if (addition) {
+							boolean multisign = false;
+							if (pinpoint != 0) {
+								String asdf = edit.substring(pinpoint - 1, pinpoint);
+								if (asdf.equals("*")) {
+									multisign = true;
+								}
+							}
+							if (endpoint != edit.length()) {
+								String asdf = edit.substring(endpoint, endpoint + 1);
+								if (asdf.equals("*")) {
+									multisign = true;
+								}
+							}
+							if (!multisign) {
+								edit = actionremove(edit, pinpoint, endpoint);
+								removedone = true;
+							}
+
+						} else if (multiply) {
+							edit = actionremove(edit, pinpoint, endpoint);
+							removedone = true;
+						} else {
+							edit = actionremove(edit, pinpoint, endpoint);
+							removedone = true;
+						}
+
+					}
+
+				}
+			}
+			if (removedone) {
+				starthere = -1;
+			}
+			len = edit.length();
+			// DONT FORGET TO ADD LOOP HERE
+		}
+		return edit;
+
+	}
+
+	public static String doublenegate(String theinput) {
+		int len = theinput.length();
+		String output1 = theinput;
+		for (int i = 0; i < len - 1; i++) {
+			String sub = output1.substring(i, i + 2);
+			if (sub.equals("!!")) {
+				String a1 = output1.substring(0, i);
+				String a2 = output1.substring(i + 2, output1.length());
+				output1 = a1 + a2;
+				len = output1.length();
+				i = len + 10;
+			}
+		}
+		return output1;
+	}
+
+	public static String actionremove(String inputs, int paren1, int paren2) {
+		String a1 = inputs.substring(0, paren1);
+		String a2 = inputs.substring(paren1 + 1, paren2 - 1);
+		String a3 = inputs.substring(paren2, inputs.length());
+		String outputit = a1 + a2 + a3;
+		return outputit;
+	}
+
+	public static String multiplyit(String theinput, int starthere) {
+		String output1 = theinput.substring(starthere, theinput.length());
+		ArrayList<String> parts = new ArrayList<String>();
+		String temp = "";
+		int endedhere = -1;
+		boolean canrecurse = false;
+		for (int i = starthere; i < theinput.length(); i++) {
+			int endpoint = 0;
+			String checkit = theinput.substring(i, i + 1);
+			if (checkit.equals("+")) {
+				endedhere = i+1;
+				canrecurse = true;
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+				break;
+			} else if (checkit.equals("*")) {
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+			} else if (checkit.equals("(")) {
+				endpoint = parenthesis(theinput, i);
+				String allofit = theinput.substring(i, endpoint);
+				temp = temp + allofit;
+				i = endpoint - 1;
+				
+			} else {
+				temp = temp + checkit;
+			}
+		}
+		if(!canrecurse) {
+		temp = removeparents(temp);
+		parts.add(temp);
+		temp = "";
+		}
+		int size = parts.size();
+		for(int a = 0; a < size; a++) {
+			String tempo = parts.get(a);
+			tempo = removeparents(tempo);
+			parts.set(a, tempo);
+		}
+		
+		
+		String output2 = parts.get(0);
+		size = parts.size();
+		if(size > 1) {
+			output1 = "";
+			for(int i = 1; i < size; i++) {
+				 int a1 = output2.length();
+				for(int y = 0; y < a1; y++) {
+					String bb = parts.get(i);
+					int endp1 = multiplyterm(output2, y);
+					String mult1 = output2.substring(y, endp1);
+					y = endp1;
+					for(int g = 0; g < bb.length(); g++) {
+						int endp2 = multiplyterm(bb, g);
+						String mult2 = bb.substring(g, endp2);
+						g = endp2;
+						output1 = output1 + mult1 + "*" + mult2 + "+";
+					}
+					
+				}
+				int lencheck = output1.length();
+				if(output1.substring(lencheck-1, lencheck).equals("+")) {
+					output1 = output1.substring(0, lencheck-1);
+				}
+				output2 = output1;
+				output1 = "";
+				
+				
+			}
+			output1 = output2;
+		} else if(size == 1 && canrecurse) {
+			output1 = parts.get(0);
+		}
+		output1 = "(" + output1 + ")";
+		String outputrecurse = "";
+		if(canrecurse) {
+			outputrecurse = multiplyit(theinput, endedhere);
+			output1 = output1 + "+" + outputrecurse;
+		}
+		if(output1.substring(output1.length() - 1, output1.length()).equals("+")) {
+			output1 = output1.substring(0, output1.length() - 1);
+		}
+		
+		return output1;
+		
+	}
+	
+	public static String simplifymultiply(String theinput, int starthere) {
+		String output1 = theinput.substring(starthere, theinput.length());
+		ArrayList<String> parts = new ArrayList<String>();
+		String temp = "";
+		int endedhere = -1;
+		boolean canrecurse = false;
+		for (int i = starthere; i < theinput.length(); i++) {
+			int endpoint = 0;
+			String checkit = theinput.substring(i, i + 1);
+			if (checkit.equals("+")) {
+				endedhere = i+1;
+				canrecurse = true;
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+				break;
+			} else if (checkit.equals("*")) {
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+			} else if (checkit.equals("(")) {
+				endpoint = parenthesis(theinput, i);
+				String allofit = theinput.substring(i, endpoint);
+				temp = temp + allofit;
+				i = endpoint - 1;
+				
+			} else {
+				temp = temp + checkit;
+			}
+		}
+		if(!canrecurse) {
+		temp = removeparents(temp);
+		parts.add(temp);
+		temp = "";
+		}
+		int size = parts.size();
+		for(int a = 0; a < size; a++) {
+			String tempo = parts.get(a);
+			tempo = removeparents(tempo);
+			parts.set(a, tempo);
+		}
+		size = parts.size();
+		if(size > 1) {
+			for(int start = 0; start < size; start++) {
+				String a = parts.get(start);
+			for(int i = start + 1; i < size; i++) {
+				String b = parts.get(i);
+				if(a.equals("0") || a.equals("!1") || b.equals("0") || b.equals("!1")) {
+					parts.set(start, "0");
+					parts.remove(i);
+					i = start + 1;
+				} else if(a.equals("1") || a.equals("!0")) {
+					parts.set(start, b);
+					parts.remove(i);
+					i = start + 1;
+				} else if(b.equals("1") || b.equals("!0")) {
+					parts.remove(i);
+					i = start + 1;
+				} else if(a.equals(b)) {
+					parts.remove(i);
+					i = start + 1;
+				} else if(a.equals("!" + b) || b.equals("!" + a)) {
+					parts.set(start, "0");
+					parts.remove(i);
+					i = start + 1;
+				}
+				size = parts.size();
+			}
+		}
+			output1 = "";
+			for(int yu = 0; yu < parts.size(); yu++) {
+				output1 = output1 + parts.get(yu) + "*";
+			}
+			output1 = output1.substring(0, output1.length() - 1); 
+		} else if(size == 1 && canrecurse) {
+			output1 = parts.get(0);
+		}
+		
+		String outputrecurse = "";
+		if(canrecurse) {
+			outputrecurse = simplifymultiply(theinput, endedhere);
+			output1 = output1 + "+" + outputrecurse;
+		}
+		if(output1.substring(output1.length() - 1, output1.length()).equals("+")) {
+			output1 = output1.substring(0, output1.length() - 1);
+		}
+		
+		return output1;
+	}
+	
+	public static int multiplyterm(String inputs, int y) {
+		int output1 = -1;
+		for(int i = y; i < inputs.length(); i++) {
+			String checker = inputs.substring(i, i+1);
+			if (checker.equals("(")) {
+				int asdf = parenthesis(inputs, i);
+				i = asdf;
+			} else if(checker.equals("+")) {
+				output1 = i;
+				break;
+			} else if(i == inputs.length() - 1) {
+				output1 = i + 1;
+				break;
+			}
+		}
+		return output1;
+		
+	}
+	
+	public static String organize(String theinput, int starthere) {
+		String output1 = theinput.substring(starthere, theinput.length());
+		ArrayList<String> parts = new ArrayList<String>();
+		String temp = "";
+		int endedhere = -1;
+		boolean canrecurse = false;
+		for (int i = starthere; i < theinput.length(); i++) {
+			int endpoint = 0;
+			String checkit = theinput.substring(i, i + 1);
+			if (checkit.equals("+")) {
+				endedhere = i+1;
+				canrecurse = true;
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+				break;
+			} else if (checkit.equals("*")) {
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+			} else if (checkit.equals("(")) {
+				endpoint = parenthesis(theinput, i);
+				String allofit = theinput.substring(i, endpoint);
+				temp = temp + allofit;
+				i = endpoint - 1;
+				
+			} else {
+				temp = temp + checkit;
+			}
+		}
+		if(!canrecurse) {
+		temp = removeparents(temp);
+		parts.add(temp);
+		temp = "";
+		}
+		int size = parts.size();
+		for(int a = 0; a < size; a++) {
+			String tempo = parts.get(a);
+			tempo = removeparents(tempo);
+			String tep = "";
+			for(int i = tempo.length(); i > 0; i--) {
+				tep = tep + tempo.substring(i - 1, i);
+			}
+			tempo = tep;
+			
+			parts.set(a, tempo);
+		}
+		
+		Collections.sort(parts);
+		size = parts.size();
+		output1 = "";
+		for(int i = 0; i < parts.size(); i++) {
+			String check = parts.get(i);
+			String free = "";
+			for(int c = check.length(); c > 0; c--) {
+				free = free + check.substring(c - 1, c);
+			}
+			check = free;
+			output1 = output1 + check + "*";
+		}
+		output1 = output1.substring(0, output1.length()- 1);
+		String outputrecurse = "";
+		if(canrecurse) {
+			outputrecurse = organize(theinput, endedhere);
+			output1 = output1 + "+" + outputrecurse;
+		}
+		if(output1.substring(output1.length() - 1, output1.length()).equals("+")) {
+			output1 = output1.substring(0, output1.length() - 1);
+		}
+		
+		return output1;
+
+	}
+	
+	public static String simplifyaddition(String theinput) {
+		String output1 = theinput.substring(0, theinput.length());
+		ArrayList<String> parts = new ArrayList<String>();
+		String temp = "";
+		for (int i = 0; i < theinput.length(); i++) {
+			int endpoint = 0;
+			String checkit = theinput.substring(i, i + 1);
+			if (checkit.equals("+")) {
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+			} else if (checkit.equals("(")) {
+				endpoint = parenthesis(theinput, i);
+				String allofit = theinput.substring(i, endpoint);
+				temp = temp + allofit;
+				i = endpoint - 1;
+				
+			} else {
+				temp = temp + checkit;
+			}
+		}
+		if(temp.length() != 0) {
+			temp = removeparents(temp);
+			parts.add(temp);
+			temp = "";
+		}
+		int size = parts.size();
+		for(int a = 0; a < size; a++) {
+			String tempo = parts.get(a);
+			tempo = removeparents(tempo);
+			parts.set(a, tempo);
+		}
+		 size = parts.size();
+		if(size > 1) {
+			for(int start = 0; start < size; start++) {
+				String a = parts.get(start);
+			for(int i = start + 1; i < size; i++) {
+				String b = parts.get(i);
+				if(a.equals("0") || a.equals("!1")) {
+					parts.set(start, b);
+					parts.remove(i);
+					i = start + 1;
+				} else if(b.equals("0") || b.equals("!1")) {
+					parts.set(start, a);
+					parts.remove(i);
+					i = start + 1;
+				} else if(a.equals("1") || a.equals("!0")) {
+					parts.set(start, "1");
+					parts.remove(i);
+					i = start + 1;
+				} else if(b.equals("1") || b.equals("!0")) {
+					parts.set(start, "1");
+					parts.remove(i);
+					i = start + 1;
+				} else if(a.equals(b)) {
+					parts.remove(i);
+					i = start + 1;
+				} else {
+					String c = "!(" + a + ")";
+					c = deMorgans(c);
+					c = removeparents(c);
+					String d = "!(" + b + ")";
+					d = deMorgans(d);
+					d = removeparents(d);
+					if(a.equals(d) || b.equals(c)) {
+					parts.set(start, "1");
+					parts.remove(i);
+					i = start + 1;
+					}
+				}
+				size = parts.size();
+			}
+		}
+			output1 = "";
+			for(int yu = 0; yu < parts.size(); yu++) {
+				output1 = output1 + parts.get(yu) + "+";
+			}
+			output1 = output1.substring(0, output1.length() - 1); 
+		}
+		
+
+		if(output1.substring(output1.length() - 1, output1.length()).equals("+")) {
+			output1 = output1.substring(0, output1.length() - 1);
+		}
+		
+		return output1;
+	}
+	
+	public static String absorption(String theinput) {
+		String output1 = theinput.substring(0, theinput.length());
+		ArrayList<String> parts = new ArrayList<String>();
+		String temp = "";
+		for (int i = 0; i < theinput.length(); i++) {
+			int endpoint = 0;
+			String checkit = theinput.substring(i, i + 1);
+			if (checkit.equals("+")) {
+				temp = removeparents(temp);
+				parts.add(temp);
+				temp = "";
+			} else if (checkit.equals("(")) {
+				endpoint = parenthesis(theinput, i);
+				String allofit = theinput.substring(i, endpoint);
+				temp = temp + allofit;
+				i = endpoint - 1;
+				
+			} else {
+				temp = temp + checkit;
+			}
+		}
+		if(temp.length() != 0) {
+			temp = removeparents(temp);
+			parts.add(temp);
+			temp = "";
+		}
+		int size = parts.size();
+		for(int a = 0; a < size; a++) {
+			String tempo = parts.get(a);
+			tempo = removeparents(tempo);
+			parts.set(a, tempo);
+		}
+		 size = parts.size();
+		if(size > 1) {
+			for(int start = 0; start < size; start++) {
+				String a = parts.get(start);
+			for(int i = 0; i < size; i++) {
+				String b = parts.get(i);
+				if(i == start) {
+					continue;
+				} else {
+					int lent = a.length();
+					for(int o = 0; o < b.length() - lent + 1; o++) {
+						String chec = b.substring(o, o + lent);
+						if(a.equals(chec)) {
+							parts.remove(i);
+							i--;
+							if(start != 0) {
+							start--;
+							}
+							break;
+						} else {
+							String c = "!(" + a + ")";
+							c = deMorgans(c);
+							c = removeparents(c);
+							String d = "!(" + b + ")";
+							d = deMorgans(d);
+							d = removeparents(d);
+							if(a.equals(d) || b.equals(c)) {
+								String a1 = b.substring(0, o);
+								String a2 = b.substring(o + lent, b.length());
+								b = a1 + a2;
+							}
+						}
+					}
+					
+				}
+				
+				size = parts.size();
+			}
+			size = parts.size();
+		}
+			output1 = "";
+			for(int yu = 0; yu < parts.size(); yu++) {
+				output1 = output1 + parts.get(yu) + "+";
+			}
+			output1 = output1.substring(0, output1.length() - 1); 
+		}
+		
+
+		if(output1.substring(output1.length() - 1, output1.length()).equals("+")) {
+			output1 = output1.substring(0, output1.length() - 1);
+		}
+		
+		return output1;
+	}
+	
+	
+	public static String stragglingone (String inputs) {
+		String output1 = inputs;
+		for(int i = 0; i < output1.length() - 1; i++) {
+			String checker = output1.substring(i, i + 2);
+			if(checker.equals("!1")) {
+				String a1 = output1.substring(0, i);
+				String a2 = output1.substring(i + 2, output1.length());
+				output1 = a1 + "0" + a2;
+				i = -1;
+			}else if(checker.equals("!0")) {
+				String a1 = output1.substring(0, i);
+				String a2 = output1.substring(i + 2, output1.length());
+				output1 = a1 + "1" + a2;
+				i = -1;
+			}
+		}
+		return output1;
+	}
+	
+}
